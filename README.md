@@ -51,5 +51,3 @@ Esto obtendrá los valores de las divisas y los insertará en tu hoja de Google 
 - El script ajusta la hora a UTC-6 para la fecha registrada.
 
 ---
-
-¿Dudas o problemas? Revisa los mensajes de error en la consola o consulta la documentación de la API de Google Sheets.
