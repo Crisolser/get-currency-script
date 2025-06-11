@@ -11,6 +11,7 @@ const __dirname = dirname(__filename);
 const { SHEET_ID,SHEET_NAME,SHEET_RANGE, EXCHANGE_RATE_KEY} = process.env;
 const CREDENTIALS_PATH = path.join(__dirname, 'credentials.json');
 
+// Función para insertar datos en Google Sheets
 async function insertDataToSheets(data) {
     const auth = new google.auth.GoogleAuth({
         keyFile: CREDENTIALS_PATH,
@@ -30,37 +31,34 @@ async function insertDataToSheets(data) {
     
     try {
         const response = await sheets.spreadsheets.values.append(request);
-        console.log('Data inserted successfully:', response.data);
     } catch (error) {
         console.error('Error inserting data:', error);
     }
 }
 
+// Función para obtener los valores de las divisas y enviarlos a Google Sheets
 async function getCurrenciesValues() {
     const currenciesList = ['MXN', 'EUR', 'CAD', 'COP', 'ARS']
     const url = `http://api.exchangerate.host/live?access_key=${EXCHANGE_RATE_KEY}`
 
     try {
         const now = new Date();
-        const formattedDate = now.toISOString().split('T')[0];
-        const response = await axios.get(url);
-        const rates = response.data.quotes;
+        // Formatear la fecha al formato 'YYYY-MM-DD HH:mm:ss'
+        now.setHours(now.getHours() - 6)
+        const formattedDate = now.toISOString().slice(0, 19).replace('T', ' ')
+        const response = await axios.get(url)
+        const rates = response.data.quotes
         const currencyValues = currenciesList.map(currency => rates["USD"+currency] || 'N/A')
-        currencyValues.unshift(now.toLocaleDateString('es-MX', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
-        }));
-        await insertDataToSheets([currencyValues]);
-        console.log('Exchange rates fetched successfully:', currencyValues);
-        return currencyValues;
+        currencyValues.unshift(formattedDate)
+        await insertDataToSheets([currencyValues])
+        console.log('Datos insertados correctamente en Google Sheets:', currencyValues);
+        return currencyValues
     } catch (error) {
-        console.error('Error fetching exchange rates:', error);
+        console.error('Error al insertar datos:', error)
         return [];
     }
     
 }
-
 
 getCurrenciesValues()
 
